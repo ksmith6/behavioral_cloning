@@ -4,15 +4,6 @@ import numpy as np
 # Adapted from http://stackoverflow.com/questions/24662571/python-import-csv-to-list
 import csv
 
-def readDrivingLog():
-	print("Loading driving_log.csv...")
-	with open('driving_log.csv', 'r') as f:
-		reader = csv.reader(f)
-		driving_log= list(reader)
-		nTrainingExamples =len(driving_log)
-		print("Data set contains %d rows" % nTrainingExamples)
-	return driving_log
-
 # Define the columns 
 columns = {
 	'cImg':0, 
@@ -22,6 +13,25 @@ columns = {
 	'throttle':4, 
 	'brake':5, 
 	'speed':6}
+
+# Define the angle factor offset for left/right camera steering.
+# Currently value of 0.75, as recommended by Kunfeng Chen in Slack chat.
+ANGLE_FACTOR = 0.75
+
+# Define a constant for determining whether or not to include 
+# a training example that has a zero steering angle.  This should tend to 
+# discount the effects of 0 steering angles.  Value should be between [0 1].
+ZERO_STEER_KEEP_PROB = 1.0
+
+
+def readDrivingLog():
+	print("Loading driving_log.csv...")
+	with open('driving_log.csv', 'r') as f:
+		reader = csv.reader(f)
+		driving_log= list(reader)
+		nTrainingExamples =len(driving_log)
+		print("Data set contains %d rows" % nTrainingExamples)
+	return driving_log[1:]
 
 """ 
 Normalizes the image data from -0.5 to +0.5
@@ -38,6 +48,7 @@ Pre-processor: loads iamges, rescales, and normalizes domain from -0.5 to 0.5
 def preprocess(filename, smallShape):
 	img = cv2.imread(filename)
 	return preprocessImg(img,smallShape)
+	
 
 def preprocessImg(img, smallShape):
 	# Re-scale the image
@@ -65,16 +76,51 @@ def process(driving_log, smallShape):
 	nTrainingExamples = len(driving_log)
 	images = []
 	labels = []
+
+	# For each training example
 	for i in range(nTrainingExamples):
 		
 		# Print progress 
 		if (i % progressIncrement == 0):
 			print("%d / %d" % (i, nTrainingExamples))
 
-		img = preprocess(driving_log[i][columns['cImg']], smallShape)
-		
-		images.append(img)
-		labels.append(driving_log[i][columns['steer']])
+		# Get the steering angle
+		steerCenter = float(driving_log[i][columns['steer']])
+
+		# Get a random number between 0 and 1
+		r = np.random.uniform(0,1)
+		# If the steering angle is zero and a random number is less than some threshold...
+		if (steerCenter != 0 or (steerCenter == 0 and r < ZERO_STEER_KEEP_PROB)):
+			
+			# Center image
+			imgC = preprocess(driving_log[i][columns['cImg']], smallShape)
+			images.append(imgC)
+			labels.append(steerCenter)
+
+			# Flip image left-right
+			flippedImg = cv2.flip(imgC, 1)
+			images.append(flippedImg)
+			labels.append(steerCenter * -1)
+
+			
+			# Left Image
+			#print("Left = " + driving_log[i][columns['lImg']])
+			#print("smallShape = " + str(smallShape))
+			# imgL = cv2.imread(driving_log[i][columns['lImg']])
+			# print(driving_log[i][columns['lImg']])
+			#print(type(imgL))				
+			#imgL = preprocess(driving_log[i][columns['lImg']], smallShape)
+			#steerLeft = steerCenter + abs(steerCenter * ANGLE_FACTOR)
+			#images.append(imgL)
+			#labels.append(steerLeft)
+
+			
+			# imgR = preprocess(driving_log[i][columns['rImg']], smallShape)
+			# steerRight = steerCenter - abs(steerCenter * ANGLE_FACTOR)
+			# images.append(imgR)
+			# labels.append(steerRight)
+			
+
 	
 	# Convert to np arrays
 	npImgs = np.asarray(images)
@@ -83,8 +129,11 @@ def process(driving_log, smallShape):
 	pickleData(npImgs, labels)
 
 def execute():
+	
+
 	print("Processing data...")
 	process(readDrivingLog(), (32,16))
 	print("Complete!")
 
-execute()
+if __name__ == '__main__':
+	execute()
