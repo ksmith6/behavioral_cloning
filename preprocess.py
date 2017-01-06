@@ -1,10 +1,13 @@
+# Author: Kelly Smith
+# Udacity Self-Driving Car Nanodegree Program
+# Project 3 - End-to-End Deep Learning for Driving Car around Test Track
+
 import cv2
 import pickle
 import numpy as np
-# Adapted from http://stackoverflow.com/questions/24662571/python-import-csv-to-list
 import csv
 
-# Define the columns 
+# Define the columns of driving_log.csv
 columns = {
 	'cImg':0, 
 	'lImg':1, 
@@ -18,7 +21,7 @@ columns = {
 # Currently value of 0.75, as recommended by Kunfeng Chen in Slack chat.
 ANGLE_FACTOR = 0.75
 
-
+# Angular offset for 
 LR_ADJUST = 0.30
 
 # Define a constant for determining whether or not to include 
@@ -29,6 +32,7 @@ ZERO_STEER_KEEP_PROB = 1.0
 # Set a fixed seed for repeatability of tests (1:1 comparison).
 np.random.seed(12345)
 
+# Utility functino adapted from http://stackoverflow.com/questions/24662571/python-import-csv-to-list
 def readDrivingLog():
 	print("Loading driving_log.csv...")
 	with open('driving_log.csv', 'r') as f:
@@ -56,12 +60,12 @@ def preprocess(filename, smallShape):
 	return preprocessImg(img,smallShape)
 	
 
+"""
+Pre-processes a loaded image by resizing and normalizing.
+"""
 def preprocessImg(img, smallShape):
 	# Re-scale the image
 	img = cv2.resize(img,smallShape)
-	
-	# Disabled conversion to grayscale
-	# img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 	img = normalize(img)
 	return img
@@ -139,12 +143,16 @@ def process(driving_log, smallShape):
 	# Save the data
 	pickleData(npImgs, labels)
 
+"""
+Main function for processing driving_log.csv
+"""
 def execute():
-	
-
 	print("Processing data...")
 	process(readDrivingLog(), (32,16))
 	print("Complete!")
 
+"""
+Call the execute function when executed via command-line
+"""
 if __name__ == '__main__':
 	execute()

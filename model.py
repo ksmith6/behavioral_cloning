@@ -11,6 +11,9 @@ import pickle, json
 from sklearn.model_selection import train_test_split
 
 
+"""
+Returns the network architecture defined in Keras.
+"""
 def getModel():
 	# Try a keras network...
 	model = Sequential([
@@ -24,12 +27,6 @@ def getModel():
     	Dense(1, input_shape=(16*32*3,)),
     ])
 	return model
-
-def getNVIDIAModel():
-	# Try the NVIDIA model, as described in their paper:
-	# http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
-	# TODO
-	pass
 
 
 """ 
