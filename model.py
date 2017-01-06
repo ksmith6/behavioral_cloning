@@ -1,6 +1,9 @@
+# Author: Kelly Smith
+# Udacity Self-Driving Car Nanodegree Program
+# Project 3 - End-to-End Deep Learning for Driving Car around Test Track
+
 import tensorflow as tf
 import numpy as np
-# TODO: import Keras layers you need here
 from keras.models import Model, Sequential, model_from_json
 from keras.layers import Input, Dense, Conv2D, Dropout, Flatten, MaxPooling2D, Activation 
 from keras.layers.normalization import BatchNormalization
@@ -25,11 +28,14 @@ def getModel():
 def getNVIDIAModel():
 	# Try the NVIDIA model, as described in their paper:
 	# http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
+	# TODO
 	pass
 
 
-def trainModel(model):
-	# TODO: Compile and train the model here.
+""" 
+Compile and train the model here.
+"""
+def trainModel(model):	
 	model.summary()
 	model.compile(optimizer='adam',
 	          loss='mean_squared_error')
@@ -49,7 +55,9 @@ Saves the weights
 def saveWeights(model,filename):
 	model.save_weights(filename)
 
-
+"""
+Main executable when called standalone.
+"""
 if __name__ == '__main__':
 	# Import training data.
 	print("Loading the dataset...",end="")
@@ -81,6 +89,3 @@ if __name__ == '__main__':
 	saveWeights(model,"model.h5")
 	print("Save Complete!")
 
-## Load VGG 
-# from keras.applications.vgg16 import VGG16
-# model = VGG16(input_tensor=input_tensor, include_top=False)

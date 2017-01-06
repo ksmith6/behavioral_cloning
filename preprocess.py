@@ -18,11 +18,16 @@ columns = {
 # Currently value of 0.75, as recommended by Kunfeng Chen in Slack chat.
 ANGLE_FACTOR = 0.75
 
+
+LR_ADJUST = 0.30
+
 # Define a constant for determining whether or not to include 
 # a training example that has a zero steering angle.  This should tend to 
 # discount the effects of 0 steering angles.  Value should be between [0 1].
 ZERO_STEER_KEEP_PROB = 1.0
 
+# Set a fixed seed for repeatability of tests (1:1 comparison).
+np.random.seed(12345)
 
 def readDrivingLog():
 	print("Loading driving_log.csv...")
@@ -30,7 +35,8 @@ def readDrivingLog():
 		reader = csv.reader(f)
 		driving_log= list(reader)
 		nTrainingExamples =len(driving_log)
-		print("Data set contains %d rows" % nTrainingExamples)
+		print("Data set contains %d rows" % (nTrainingExamples-1))
+	# Ignore the top row (column labels)
 	return driving_log[1:]
 
 """ 
@@ -97,28 +103,33 @@ def process(driving_log, smallShape):
 			images.append(imgC)
 			labels.append(steerCenter)
 
-			# Flip image left-right
-			flippedImg = cv2.flip(imgC, 1)
-			images.append(flippedImg)
+			
+
+			# Left Image			
+			imgL = preprocess(driving_log[i][columns['lImg']].strip(), smallShape)
+			steerLeft = steerCenter + LR_ADJUST# abs(steerCenter * ANGLE_FACTOR)
+			images.append(imgL)
+			labels.append(steerLeft)
+
+			# Right image
+			imgR = preprocess(driving_log[i][columns['rImg']].strip(), smallShape)
+			steerRight = steerCenter - LR_ADJUST #abs(steerCenter * ANGLE_FACTOR)
+			images.append(imgR)
+			labels.append(steerRight)
+
+			# Flipped Images
+
+			# Flip center image left-right
+			images.append(cv2.flip(imgC, 1))
 			labels.append(steerCenter * -1)
 
-			
-			# Left Image
-			#print("Left = " + driving_log[i][columns['lImg']])
-			#print("smallShape = " + str(smallShape))
-			# imgL = cv2.imread(driving_log[i][columns['lImg']])
-			# print(driving_log[i][columns['lImg']])
-			#print(type(imgL))				
-			#imgL = preprocess(driving_log[i][columns['lImg']], smallShape)
-			#steerLeft = steerCenter + abs(steerCenter * ANGLE_FACTOR)
-			#images.append(imgL)
-			#labels.append(steerLeft)
+			# Flip left Image			
+			images.append(cv2.flip(imgL, 1))
+			labels.append(steerLeft * -1)
 
-			
-			# imgR = preprocess(driving_log[i][columns['rImg']], smallShape)
-			# steerRight = steerCenter - abs(steerCenter * ANGLE_FACTOR)
-			# images.append(imgR)
-			# labels.append(steerRight)
+			# Flip right image
+			images.append(cv2.flip(imgR, 1))
+			labels.append(steerRight * -1)
 			
 
 	
